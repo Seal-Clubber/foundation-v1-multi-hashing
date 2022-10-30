@@ -50,6 +50,16 @@ module.exports = {
    * @param hashOutBuf {Buffer} Hash result output Buffer
    * @returns {boolean} True if valid, otherwise false.
    */
+   'evrprogpow': algorithms.evrprogpow,
+
+  /**
+   * @param headerHashBuf {Buffer} 32-byte header hash
+   * @param nonceBuf {Buffer} 8-byte nonce value (64-bits)
+   * @param blockHeight {number} Block height integer
+   * @param mixHashBuf {Buffer} Mix hash for verification
+   * @param hashOutBuf {Buffer} Hash result output Buffer
+   * @returns {boolean} True if valid, otherwise false.
+   */
   'firopow': algorithms.firopow,
 
   /**

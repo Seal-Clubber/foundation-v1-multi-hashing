@@ -30,6 +30,9 @@
 #include "algorithms/main/x16rt/x16rt.h"
 
 // ProgPow Imports
+#include "algorithms/main/evrprogpow/evrprogpow.h"
+#include "algorithms/main/evrprogpow/evrprogpow.hpp"
+#include "algorithms/main/evrprogpow/evrprogpow_progpow.hpp"
 #include "algorithms/main/firopow/firopow.h"
 #include "algorithms/main/firopow/firopow.hpp"
 #include "algorithms/main/firopow/firopow_progpow.hpp"
@@ -161,6 +164,32 @@ NAN_METHOD(equihash) {
   crypto_generichash_blake2b_update(&state, (const unsigned char*)hdr, 140);
   EhIsValidSolution(N, K, state, vecSolution, isValid);
   info.GetReturnValue().Set(isValid);
+}
+
+// Evrprogpow Algorithm
+NAN_METHOD(evrprogpow) {
+
+  // Check Arguments for Errors
+  if (info.Length() < 5)
+    return THROW_ERROR_EXCEPTION("You must provide five arguments.");
+
+  // Process/Define Passed Parameters [1]
+  const ethash::hash256* header_hash_ptr = (ethash::hash256*)Buffer::Data(Nan::To<v8::Object>(info[0]).ToLocalChecked());
+  uint64_t* nonce64_ptr = (uint64_t*)Buffer::Data(Nan::To<v8::Object>(info[1]).ToLocalChecked());
+  int block_height = info[2]->IntegerValue(Nan::GetCurrentContext()).FromJust();
+  const ethash::hash256* mix_hash_ptr = (ethash::hash256*)Buffer::Data(Nan::To<v8::Object>(info[3]).ToLocalChecked());
+  ethash::hash256* hash_out_ptr = (ethash::hash256*)Buffer::Data(Nan::To<v8::Object>(info[4]).ToLocalChecked());
+
+  // Process/Define Passed Parameters [2]
+  static evrprogpow_main::epoch_context_ptr context{nullptr, nullptr};
+  const auto epoch_number = evrprogpow_main::get_epoch_number(block_height);
+  if (!context || context->epoch_number != epoch_number)
+      context = evrprogpow_main::create_epoch_context(epoch_number);
+
+  // Hash Input Data and Check if Valid Solution
+  bool is_valid = evrprogpow_progpow::verify(*context, block_height, header_hash_ptr, *mix_hash_ptr, *nonce64_ptr, hash_out_ptr);
+  if (is_valid) info.GetReturnValue().Set(Nan::True());
+  else info.GetReturnValue().Set(Nan::False());
 }
 
 // Firopow Algorithm
@@ -561,6 +590,7 @@ NAN_MODULE_INIT(init) {
   Nan::Set(target, Nan::New("blake2s").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(blake2s)).ToLocalChecked());
   Nan::Set(target, Nan::New("c11").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(c11)).ToLocalChecked());
   Nan::Set(target, Nan::New("equihash").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(equihash)).ToLocalChecked());
+  Nan::Set(target, Nan::New("evrprogpow").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(evrprogpow)).ToLocalChecked());
   Nan::Set(target, Nan::New("firopow").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(firopow)).ToLocalChecked());
   Nan::Set(target, Nan::New("fugue").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(fugue)).ToLocalChecked());
   Nan::Set(target, Nan::New("ghostrider").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(ghostrider)).ToLocalChecked());

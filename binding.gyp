@@ -31,6 +31,8 @@
                 "algorithms/main/yespower/yespower.c",
 
                 # ProgPow Sources
+                "algorithms/main/evrprogpow/evrprogpow.cpp",
+                "algorithms/main/evrprogpow/evrprogpow_progpow.cpp",
                 "algorithms/main/firopow/firopow.cpp",
                 "algorithms/main/firopow/firopow_progpow.cpp",
                 "algorithms/main/kawpow/kawpow.cpp",
